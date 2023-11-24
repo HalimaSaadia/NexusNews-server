@@ -68,8 +68,10 @@ async function run() {
   });
 
   // article related API
-  app.get("/articles", async(req,res)=>{
-
+  app.get("/approved-articles", async(req,res)=>{
+    const query = {state:'approved'}
+    const articles = await articlesCollection.find(query).toArray()
+    res.send(articles)
   })
 
   app.post("/articles",async(req, res)=> {
