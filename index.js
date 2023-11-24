@@ -38,6 +38,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const usersCollection = client.db("nexusNewsDB").collection('users');
+    const publisherCollection = client.db("nexusNewsDB").collection('publisher');
 
 
     const verifyToken = (req, res, next) => {
@@ -71,13 +72,19 @@ async function run() {
   // user related API
   app.post("/create-user", async(req, res)=> {
     const user = req.body;
-    const query = {email:user?.email}
+    const query = {userEmail:user?.userEmail}
     const isExist = await usersCollection.findOne(query)
     if(isExist){
       return res.send({message:"user already Exist"})
     }
     const result = await usersCollection.insertOne(user)
     res.send(result)
+  })
+
+  // publisher related API
+  app.get("/publisher",async(req,res)=> {
+    const publisher = await publisherCollection.find().toArray()
+    res.send(publisher)
   })
   
 
