@@ -37,9 +37,10 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    const usersCollection = client.db("nexusNewsDB").collection('users');
+
 
     const verifyToken = (req, res, next) => {
-      console.log("authorization",req.headers.authorization);
     if (!req.headers.authorization) {
       return res
         .status(401)
@@ -66,7 +67,21 @@ async function run() {
     });
     res.send({ token });
   });
+
+  // user related API
+  app.post("/create-user", async(req, res)=> {
+    const user = req.body;
+    const query = {email:user?.email}
+    const isExist = await usersCollection.findOne(query)
+    if(isExist){
+      return res.send({message:"user already Exist"})
+    }
+    const result = await usersCollection.insertOne(user)
+    res.send(result)
+  })
   
+
+
   
   // payment
   app.post("/payment",async(req, res)=>{
@@ -93,6 +108,5 @@ run().catch(console.dir);
 
 
 app.listen(port, () => {
-  console.log(process.env.STRIPE_SECRET_KEY,"secretKey");
   console.log(`server is running on http://localhost:${port}`);
 });
