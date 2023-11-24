@@ -68,9 +68,20 @@ async function run() {
   });
 
   // article related API
-  app.get("/approved-articles", async(req,res)=>{
-    const query = {state:'approved'}
-    const articles = await articlesCollection.find(query).toArray()
+  app.post("/approved-articles", async(req,res)=>{
+    // const query = {state:'approved'}
+    const {searchedValue} = req.body
+   const filter = {$and:[
+    {state:'approved'},
+    {
+      $or:[
+        {tag:{$regex:searchedValue,$options:'i'}},
+        {publisher:{$regex:searchedValue,$options:'i'}}
+      ]
+     }
+   ]}
+   
+    const articles = await articlesCollection.find(filter).toArray()
     res.send(articles)
   })
 
