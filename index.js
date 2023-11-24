@@ -21,9 +21,6 @@ app.use(express.json());
 
 
 
-
-
-
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.3azmgms.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -38,6 +35,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const usersCollection = client.db("nexusNewsDB").collection('users');
+    const articlesCollection = client.db("nexusNewsDB").collection('articles');
     const publisherCollection = client.db("nexusNewsDB").collection('publisher');
 
 
@@ -68,6 +66,17 @@ async function run() {
     });
     res.send({ token });
   });
+
+  // article related API
+  app.get("/articles", async(req,res)=>{
+
+  })
+
+  app.post("/articles",async(req, res)=> {
+    const article = req.body
+    const result = await articlesCollection.insertOne(article)
+    res.send(result)
+  })
 
   // user related API
   app.post("/create-user", async(req, res)=> {
