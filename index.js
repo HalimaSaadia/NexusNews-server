@@ -5,7 +5,7 @@ require("dotenv").config();
 var jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 app.use(
   cors({
@@ -38,6 +38,8 @@ async function run() {
     const articlesCollection = client.db("nexusNewsDB").collection('articles');
     const publisherCollection = client.db("nexusNewsDB").collection('publisher');
 
+    
+
 
     const verifyToken = (req, res, next) => {
     if (!req.headers.authorization) {
@@ -67,11 +69,34 @@ async function run() {
     res.send({ token });
   });
 
+  
+
   // article related API
+  app.get("/details/:id", async(req,res)=>{
+    const id = req.params.id
+    const query = {_id: new ObjectId(id)}
+    const result = await articlesCollection.findOne(query)
+    res.send(result)
+  })
+  app.patch("/details/:id", async(req,res)=>{
+    const id = req.params.id
+    const query = {_id: new ObjectId(id)}
+    const result = await articlesCollection.findOne(query)
+    const previousViewCount =  result.viewCount
+    const newViewCount = {
+      $set:{
+        viewCount: previousViewCount + 1
+      }
+    }
+    console.log(newViewCount);
+    const updateViewCount = await articlesCollection.updateOne(query,newViewCount,{upsert:true})
+    res.send(newViewCount)
+  })
+
   app.post("/approved-articles", async(req,res)=>{
     // const query = {state:'approved'}
     const {searchedValue} = req.body
-   const filter = {$and:[
+   const query = {$and:[
     {state:'approved'},
     {
       $or:[
@@ -81,7 +106,7 @@ async function run() {
      }
    ]}
    
-    const articles = await articlesCollection.find(filter).toArray()
+    const articles = await articlesCollection.find(query).toArray()
     res.send(articles)
   })
 
