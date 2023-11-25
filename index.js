@@ -116,6 +116,35 @@ async function run() {
     res.send(result)
   })
 
+  app.get("/my-articles/:email", async(req,res)=> {
+    const email = req.params.email
+    const query = {authorEmail:email}
+    const result = await articlesCollection.find(query).toArray()
+    console.log(email);
+    res.send(result)
+
+  })
+
+  app.patch("/edit-article/:id", async(req,res)=> {
+    const id = req.params.id
+    const {title,image,publisher,tag,description} = req.body
+    const filter = {
+      _id: new ObjectId(id)
+    }
+    const updatedDoc = {
+      $set: {
+        title,
+        image,
+        publisher,
+        tag,
+        description
+      }
+    }
+    const result = await articlesCollection.updateOne(filter,updatedDoc)
+    console.log(req.body);
+    res.send(result)
+  })
+
   // user related API
   app.post("/create-user", async(req, res)=> {
     const user = req.body;
