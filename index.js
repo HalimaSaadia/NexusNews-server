@@ -54,7 +54,6 @@ async function run() {
           .status(401)
           .send({ message: "unAuthorized access" });
       }
-      console.log("decoded",decoded);
       req.decoded = decoded
       next();
     });
@@ -116,11 +115,10 @@ async function run() {
     res.send(result)
   })
 
-  app.get("/my-articles/:email", async(req,res)=> {
+  app.get("/my-articles/:email",verifyToken, async(req,res)=> {
     const email = req.params.email
     const query = {authorEmail:email}
     const result = await articlesCollection.find(query).toArray()
-    console.log(email);
     res.send(result)
 
   })
@@ -161,6 +159,19 @@ async function run() {
       return res.send({message:"user already Exist"})
     }
     const result = await usersCollection.insertOne(user)
+    res.send(result)
+  })
+
+  app.get("/check-admin-isPremium/:email", async(req,res)=> {
+    const email = req.params.email;
+    const query = {userEmail:email}
+    const result = await usersCollection.findOne(query)
+    console.log(email);
+    res.send(result)
+  })
+
+  app.get("/trendingArticle", async(req,res)=> {
+    const result = await articlesCollection.find().sort({viewCount: -1}).limit(6).toArray()
     res.send(result)
   })
 
