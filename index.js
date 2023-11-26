@@ -151,6 +151,13 @@ async function run() {
   })
 
   // user related API
+  app.get("/user/:email",async(req,res)=> {
+    const email= req.params.email
+    const query = {userEmail:email}
+    const user = await usersCollection.findOne(query)
+    res.send(user)
+  })
+
   app.post("/create-user", async(req, res)=> {
     const user = req.body;
     const query = {userEmail:user?.userEmail}
@@ -159,6 +166,20 @@ async function run() {
       return res.send({message:"user already Exist"})
     }
     const result = await usersCollection.insertOne(user)
+    res.send(result)
+  })
+
+  app.patch("/update-user/:email", async(req,res)=> {
+    const email = req.params.email
+    const {updatedImage,updatedName} = req.body
+    const query = {userEmail:email}
+    const updatedUser = {
+      $set: {
+        userName:updatedName,
+        userImage:updatedImage
+      }
+    }
+    const result = await usersCollection.updateOne(query,updatedUser)
     res.send(result)
   })
 
