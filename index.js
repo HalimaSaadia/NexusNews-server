@@ -151,11 +151,30 @@ async function run() {
   })
 
   // user related API
+  app.get("/all-users",async(req,res)=> {
+    const users = await usersCollection.find().toArray()
+    res.send(users)
+  })
+
   app.get("/user/:email",async(req,res)=> {
     const email= req.params.email
     const query = {userEmail:email}
     const user = await usersCollection.findOne(query)
     res.send(user)
+  })
+
+  app.patch("/make-user-admin/:id", async(req,res)=> {
+    const id = req.params.id;
+    const filter = {
+      _id: new ObjectId(id)
+    }
+    const updatedUserRole = {
+      $set:{
+        role: 'admin'
+      }
+    }
+    const result = await usersCollection.updateOne(filter,updatedUserRole)
+    res.send(result)
   })
 
   app.post("/create-user", async(req, res)=> {
@@ -187,7 +206,6 @@ async function run() {
     const email = req.params.email;
     const query = {userEmail:email}
     const result = await usersCollection.findOne(query)
-    console.log(email);
     res.send(result)
   })
 
