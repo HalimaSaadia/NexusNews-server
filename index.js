@@ -38,8 +38,6 @@ async function run() {
     const articlesCollection = client.db("nexusNewsDB").collection('articles');
     const publisherCollection = client.db("nexusNewsDB").collection('publisher');
 
-    
-
 
     const verifyToken = (req, res, next) => {
     if (!req.headers.authorization) {
@@ -71,6 +69,11 @@ async function run() {
   
 
   // article related API
+  app.get("/all-articles",verifyToken, async(req,res)=> {
+    const result = await articlesCollection.find().toArray()
+    res.send(result)
+  })
+
   app.get("/details/:id", async(req,res)=>{
     const id = req.params.id
     const query = {_id: new ObjectId(id)}
@@ -92,8 +95,50 @@ async function run() {
     res.send(newViewCount)
   })
 
+  app.patch("/approve-state/:id",async(req,res)=> {
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)}
+    const updateState = {
+      $set:{
+        state:"approved",
+        declineMessage:""
+      }
+    }
+    const result = await articlesCollection.updateOne(query,updateState)
+    res.send(result)
+  })
+
+  app.patch("/decline-state/:id",async(req,res)=>{
+    const id = req.params.id;
+    const {message} = req.body
+    const query = {_id: new ObjectId(id)}
+    const updateState = {
+      $set:{
+        state:'declined',
+        declineMessage:message
+      }
+    }
+    const result = await articlesCollection.updateOne(query,updateState)
+    res.send(result)
+  })
+
+  app.patch("/make-premium/:id",async(req,res)=> {
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)}
+    const updateState = {
+      $set:{
+        isPremium:true
+      }
+    }
+    const result = await articlesCollection.updateOne(query,updateState)
+    res.send(result)
+  })
+
+
+
+  
+
   app.post("/approved-articles", async(req,res)=>{
-    // const query = {state:'approved'}
     const {searchedValue} = req.body
    const query = {$and:[
     {state:'approved'},
@@ -218,6 +263,13 @@ async function run() {
   app.get("/publisher",async(req,res)=> {
     const publisher = await publisherCollection.find().toArray()
     res.send(publisher)
+  })
+
+  app.post("/add-publisher",async(req,res)=> {
+    const {name,image} = req.body;
+    const newPublisher = {publisherName:name,publisherImage:image}
+    const result = await await publisherCollection.insertOne(newPublisher)
+    res.send(result)
   })
   
 
