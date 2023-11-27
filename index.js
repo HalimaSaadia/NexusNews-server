@@ -74,6 +74,11 @@ async function run() {
     res.send(result)
   })
 
+  app.get("/trendingArticle", async(req,res)=> {
+    const result = await articlesCollection.find().sort({viewCount: -1}).limit(6).toArray()
+    res.send(result)
+  })
+
   app.get("/details/:id", async(req,res)=>{
     const id = req.params.id
     const query = {_id: new ObjectId(id)}
@@ -134,10 +139,6 @@ async function run() {
     res.send(result)
   })
 
-
-
-  
-
   app.post("/approved-articles", async(req,res)=>{
     const {searchedValue} = req.body
    const query = {$and:[
@@ -195,10 +196,20 @@ async function run() {
     res.send(result)
   })
 
+
+
+
   // user related API
   app.get("/all-users",async(req,res)=> {
     const users = await usersCollection.find().toArray()
     res.send(users)
+  })
+
+  app.get("/usersCount",verifyToken, async(req,res)=> {
+    const allUsers =await usersCollection.estimatedDocumentCount()
+    const normalUsers =await usersCollection.countDocuments({isPremiumTaken:false})
+    const premiumUsers =await usersCollection.countDocuments({isPremiumTaken:true})
+    res.send({allUsers, normalUsers, premiumUsers})
   })
 
   app.get("/user/:email",async(req,res)=> {
@@ -254,10 +265,7 @@ async function run() {
     res.send(result)
   })
 
-  app.get("/trendingArticle", async(req,res)=> {
-    const result = await articlesCollection.find().sort({viewCount: -1}).limit(6).toArray()
-    res.send(result)
-  })
+
 
   // publisher related API
   app.get("/publisher",async(req,res)=> {
