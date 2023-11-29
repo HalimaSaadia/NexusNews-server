@@ -59,9 +59,15 @@ async function run() {
 
     // article related API
     app.get("/all-articles", verifyToken, async (req, res) => {
-      const result = await articlesCollection.find().toArray();
+      const page = parseInt(req.query.page)
+      const result = await articlesCollection.find().limit(5).skip((page-1) *5).toArray();
       res.send(result);
     });
+
+    app.get("/allArticlesCount",verifyToken, async(req, res)=> {
+      const result = await articlesCollection.estimatedDocumentCount()
+      res.send({articlesCount:result})
+    })
 
     app.get("/trendingArticle", async (req, res) => {
         const query = { state:"approved" }
@@ -220,9 +226,15 @@ async function run() {
 
     // user related API
     app.get("/all-users",verifyToken, async (req, res) => {
-      const users = await usersCollection.find().toArray();
+      const page = parseInt(req.query.page)
+      const users = await usersCollection.find().limit(5).skip((page-1) * 5).toArray();
       res.send(users);
     });
+
+    app.get("/allUsersCount", async(req,res)=> {
+      const result = await usersCollection.estimatedDocumentCount()
+      res.send({allUsersCount:result})
+    })
 
     app.get("/usersCount", async (req, res) => {
       const allUsers = await usersCollection.estimatedDocumentCount();
