@@ -64,8 +64,9 @@ async function run() {
     });
 
     app.get("/trendingArticle", async (req, res) => {
+        const query = { state:"approved" }
       const result = await articlesCollection
-        .find()
+        .find(query)
         .sort({ viewCount: -1 })
         .limit(6)
         .toArray();
@@ -96,7 +97,7 @@ async function run() {
       res.send(newViewCount);
     });
 
-    app.patch("/approve-state/:id", async (req, res) => {
+    app.patch("/approve-state/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const updateState = {
@@ -109,7 +110,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/decline-state/:id", async (req, res) => {
+    app.patch("/decline-state/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const { message } = req.body;
       const query = { _id: new ObjectId(id) };
@@ -123,7 +124,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/make-premium/:id", async (req, res) => {
+    app.patch("/make-premium/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const updateState = {
@@ -143,7 +144,7 @@ async function run() {
           {
             $or: [
               { tag: { $regex: searchedValue, $options: "i" } },
-              { publisher: { $regex: searchedValue, $options: "i" } },
+              { title: { $regex: searchedValue, $options: "i" } },
             ],
           },
         ],
@@ -153,13 +154,13 @@ async function run() {
       res.send(articles);
     });
 
-    app.post("/articles", async (req, res) => {
+    app.post("/articles",verifyToken, async (req, res) => {
       const article = req.body;
       const result = await articlesCollection.insertOne(article);
       res.send(result);
     });
 
-    app.get("/premiumArticles", async (req, res) => {
+    app.get("/premiumArticles",verifyToken, async (req, res) => {
       const query = { isPremium: true };
       const result = await articlesCollection.find(query).toArray();
       res.send(result);
@@ -191,7 +192,7 @@ async function run() {
       });
     });
 
-    app.patch("/edit-article/:id", async (req, res) => {
+    app.patch("/edit-article/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const { title, image, publisher, tag, description } = req.body;
       const filter = {
@@ -210,7 +211,7 @@ async function run() {
       res.send(result);
     });
 
-    app.delete("/delete-article/:id", async (req, res) => {
+    app.delete("/delete-article/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await articlesCollection.deleteOne(query);
@@ -218,7 +219,7 @@ async function run() {
     });
 
     // user related API
-    app.get("/all-users", async (req, res) => {
+    app.get("/all-users",verifyToken, async (req, res) => {
       const users = await usersCollection.find().toArray();
       res.send(users);
     });
@@ -234,14 +235,14 @@ async function run() {
       res.send({ allUsers, normalUsers, premiumUsers });
     });
 
-    app.get("/user/:email", async (req, res) => {
+    app.get("/user/:email",verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { userEmail: email };
       const user = await usersCollection.findOne(query);
       res.send(user);
     });
 
-    app.patch("/make-user-admin/:id", async (req, res) => {
+    app.patch("/make-user-admin/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = {
         _id: new ObjectId(id),
@@ -266,7 +267,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/update-user/:email", async (req, res) => {
+    app.patch("/update-user/:email",verifyToken, async (req, res) => {
       const email = req.params.email;
       const { updatedImage, updatedName } = req.body;
       const query = { userEmail: email };
@@ -280,14 +281,14 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/check-admin-isPremium/:email", async (req, res) => {
+    app.get("/check-admin-isPremium/:email",verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { userEmail: email };
       const result = await usersCollection.findOne(query);
       res.send(result);
     });
 
-    app.patch("/check-premiumTakenExpiration/:email",async(req,res)=> {
+    app.patch("/check-premiumTakenExpiration/:email",verifyToken,async(req,res)=> {
       const loggedInUser = req.params.email;
       const query = {userEmail:loggedInUser}
       const date = new Date()
@@ -312,14 +313,14 @@ async function run() {
       res.send(publisher);
     });
 
-    app.post("/add-publisher", async (req, res) => {
+    app.post("/add-publisher",verifyToken, async (req, res) => {
       const { name, image } = req.body;
       const newPublisher = { publisherName: name, publisherImage: image };
       const result = await publisherCollection.insertOne(newPublisher);
       res.send(result);
     });
 
-    app.get("/publisher-states", async (req, res) => {
+    app.get("/publisher-states",verifyToken, async (req, res) => {
       const result = await publisherCollection
         .aggregate([
           {
