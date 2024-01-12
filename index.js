@@ -10,9 +10,12 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 app.use(
   cors({
     origin: ["http://localhost:5173", "https://nexusnewsbd.netlify.app"],
+
   })
 );
 app.use(express.json());
+
+
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.3azmgms.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -74,8 +77,13 @@ async function run() {
       const result = await articlesCollection
         .find(query)
         .sort({ viewCount: -1 })
-        .limit(6)
+        .limit(9)
         .toArray();
+      res.send(result);
+    });
+    app.get("/local-update", async (req, res) => {
+      const query = { state:"approved",tag:"local updates"  }
+      const result = await articlesCollection.find(query).toArray();
       res.send(result);
     });
 
@@ -395,6 +403,22 @@ async function run() {
      
     });
 
+
+
+
+
+
+
+
+
+
+    app.get("/approved-articles2", async (req, res) => {
+      const page = parseInt(req.query.page) 
+      const articles = await articlesCollection.find().skip((page -1) * 5).limit(5).toArray();
+      console.log(page);
+      res.send(articles);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
@@ -402,6 +426,7 @@ async function run() {
   } finally {
   }
 }
+
 run().catch(console.dir);
 
 app.listen(port, () => {
