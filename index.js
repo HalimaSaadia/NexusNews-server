@@ -36,6 +36,15 @@ async function run() {
       .db("nexusNewsDB")
       .collection("publisher");
 
+      // const query = {tag: null}
+      //   const updatedDoc = {
+      //     $set: {
+      //       tag: "international"
+      //     }
+      //   }
+      //   const result = await articlesCollection.updateMany(query, updatedDoc)
+      //   console.log(result);
+
     const verifyToken = (req, res, next) => {
       if (!req.headers.authorization) {
         return res
@@ -78,7 +87,7 @@ async function run() {
         .find(query)
         .sort({ viewCount: -1 })
         .limit(9)
-        .toArray();
+        .toArray()
       res.send(result);
     });
     app.get("/local-update", async (req, res) => {
@@ -151,13 +160,14 @@ async function run() {
     });
 
     app.post("/approved-articles", async (req, res) => {
-      const { searchedValue } = req.body;
+      const { searchedValue,category } = req.body
       const query = {
         $and: [
           { state: "approved" },
+          // { tag: category },
           {
-            $or: [
-              { tag: { $regex: searchedValue, $options: "i" } },
+            $and: [
+              { tag: { $regex: category, $options: "i" } },
               { title: { $regex: searchedValue, $options: "i" } },
             ],
           },
@@ -167,6 +177,19 @@ async function run() {
       const articles = await articlesCollection.find(query).toArray();
       res.send(articles);
     });
+
+    app.get("/all-approved-articles", async(req, res)=> {
+      // const query = {state:"approved"}
+      // const tagsWithArticles = await articlesCollection.aggregate([
+      //   { $match: { state: "approved" } },
+      //   { $group: { _id: "$tag", articles: { $push: "$$ROOT" } } },
+      //   { $project: { _id: 0, tag: "$_id", articles: 1 } }
+      // ]).toArray();
+
+      
+      
+      res.send(tagsWithArticles)
+    })
 
     app.post("/articles",verifyToken, async (req, res) => {
       const article = req.body;
@@ -231,6 +254,18 @@ async function run() {
       const result = await articlesCollection.deleteOne(query);
       res.send(result);
     });
+
+    // all categories
+    app.get("/categories", async(req, res)=>{
+      const uniqueCategories = []
+      const articles = await articlesCollection.find().toArray()
+      articles.forEach(article => {
+        if(uniqueCategories.indexOf(article.tag)=== -1){
+          uniqueCategories.push(article.tag)
+        }
+      });
+      res.send(uniqueCategories)
+    })
 
     // user related API
     app.get("/all-users",verifyToken, async (req, res) => {
